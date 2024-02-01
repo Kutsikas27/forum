@@ -18,42 +18,47 @@ type Post struct {
 var hometmp = template.Must(template.New("index.html").ParseFiles("frontend/templates/index.html"))
 
 func Homepage(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.Error(w, "Not Found", http.StatusNotFound)
+		return
+	}
+
+	if r.Method != "GET" {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	var P []Post
-	if r.URL.Path == "/" {
-		if r.Method == "GET" {
-			Id := 1
-			posttext := "this is my first post"
-			database, err := sql.Open("sqlite3", "./database.db")
-			if err != nil {
-				log.Fatal("Error opening database:", err)
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				return
-			}
-			defer database.Close()
+	Id := 1
+	posttext := "this is my first post"
 
-			err = insertPost(database, Id, posttext)
-			if err != nil {
-				log.Fatal("Error inserting post into database:", err)
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				return
-			}
+	database, err := sql.Open("sqlite3", "./database.db")
+	if err != nil {
+		log.Fatal("Error opening database:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	defer database.Close()
 
-			err = displaydata(database, &P)
-			if err != nil {
-				log.Fatal("Error fetching data from database:", err)
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				return
-			}
+	err = insertPost(database, Id, posttext)
+	if err != nil {
+		log.Fatal("Error inserting post into database:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 
-			err = hometmp.Execute(w, P)
-			if err != nil {
-				log.Fatal("Error executing template:", err)
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				return
-			}
-		} else {
-			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		}
+	err = displaydata(database, &P)
+	if err != nil {
+		log.Fatal("Error fetching data from database:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	err = hometmp.Execute(w, P)
+	if err != nil {
+		log.Fatal("Error executing template:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 }
 
