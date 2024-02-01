@@ -10,6 +10,8 @@ import (
 func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./frontend/static"))))
 	http.HandleFunc("/", funcs.Homepage)
+	http.HandleFunc("/login", funcs.LoginPage)
+
 	addr := ":8080"
 	fmt.Printf("Forum running at localhost%s\n", addr)
 	err := http.ListenAndServe(addr, nil)
