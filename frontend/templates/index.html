@@ -2,9 +2,16 @@
 
 <html>
     <head>
-
+        <link rel="stylesheet" href="static/style.css" type="text/css">
+        <title>Hello worlds</title>
     </head>
     <body>
-        Hello worlds
+        <div class="everything"></div>
+        {{range .}}
+        <div class="textpost">
+            {{.ID}}
+            {{.Text}}
+        </div>
+        {{end}}
     </body>
 </html>

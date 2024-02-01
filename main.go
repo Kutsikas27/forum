@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	http.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir("/frontend/assets"))))
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./frontend/static"))))
 	http.HandleFunc("/", funcs.Homepage)
 	addr := ":8080"
 	fmt.Printf("Forum running at localhost%s\n", addr)
