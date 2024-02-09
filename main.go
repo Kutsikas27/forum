@@ -11,7 +11,7 @@ func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./frontend/static"))))
 	http.HandleFunc("/", funcs.Homepage)
 	http.HandleFunc("/signin", funcs.LoginPage)
-
+	http.HandleFunc("/createPost", funcs.CreatePost)
 	addr := ":8080"
 	fmt.Printf("Forum running at localhost%s\n", addr)
 	err := http.ListenAndServe(addr, nil)
