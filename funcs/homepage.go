@@ -69,8 +69,6 @@ func Homepage(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
-	} else if r.Method == "POST" {
-		// Post creating code here
 	}
 }
 
