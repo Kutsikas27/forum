@@ -1,6 +1,7 @@
 package funcs
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"text/template"
@@ -24,5 +25,15 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
+	} else if r.Method == "POST" {
+		text := r.FormValue("text")
+		title := r.FormValue("title")
+		category := r.FormValue("category")
+		http.Redirect(w, r, "/", http.StatusFound)
+		fmt.Println("text", text, "\n",
+			"title", title, "\n",
+			category)
+
 	}
+
 }
