@@ -7,10 +7,22 @@ import (
 	"net/http"
 	"net/mail"
 	"text/template"
+	"time"
 
 	"github.com/gofrs/uuid/v5"
 	_ "github.com/mattn/go-sqlite3"
 )
+
+var sessions = map[string]session{}
+
+type session struct {
+	UserData string
+	expiry   time.Time
+}
+
+func (s session) isExpired() bool {
+	return s.expiry.Before(time.Now())
+}
 
 var logintmp = template.Must(template.New("signin.html").ParseFiles("frontend/templates/signin.html"))
 
@@ -31,24 +43,42 @@ func LoginPage(w http.ResponseWriter, r *http.Request) {
 		}
 
 	} else if r.Method == "POST" {
-		name = r.FormValue("Name")
-		password = r.FormValue("Password")
-		email = r.FormValue("Email")
-		Credentials(w, email, name, password)
-		http.Redirect(w, r, "/", http.StatusFound)
+		database, err := sql.Open("sqlite3", "./database.db")
+		if err != nil {
+			log.Fatal("Error opening database:", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		defer database.Close()
+		if r.FormValue("operation") == "signup" {
+			name = r.FormValue("Name")
+			password = r.FormValue("Password")
+			email = r.FormValue("Email")
+			Credentials(w, database, email, name, password)
+			createCookie(w, name)
+			http.Redirect(w, r, "/", http.StatusFound)
+		} else if r.FormValue("operation") == "Login" {
+			password = r.FormValue("Password")
+			email = r.FormValue("Email")
+			correctCridentials, err := login(w, database, email, password)
+			if err != nil {
+				log.Fatal("Error checking login:", err)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				return
+			}
+			if !correctCridentials {
+				log.Fatal("Wrong password")
+				return
+			}
+			createCookie(w, name)
+			http.Redirect(w, r, "/", http.StatusFound)
+		}
+
 	}
 
 }
 
-func Credentials(w http.ResponseWriter, email, name, password string) {
-	database, err := sql.Open("sqlite3", "./database.db")
-	if err != nil {
-		log.Fatal("Error opening database:", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-	defer database.Close()
-
+func Credentials(w http.ResponseWriter, database *sql.DB, email, name, password string) {
 	exists1, err := checkEmail(database, email)
 	if err != nil {
 		log.Fatal("Error checking credentials:", err)
@@ -76,8 +106,6 @@ func Credentials(w http.ResponseWriter, email, name, password string) {
 
 func checkEmail(db *sql.DB, email string) (bool, error) {
 	valid := validateEmail(email)
-	fmt.Println(email)
-	fmt.Println(valid)
 	if !valid {
 		return true, nil
 	}
@@ -128,4 +156,58 @@ func insertUser(db *sql.DB, email, name, password string) error {
 	}
 
 	return nil
+}
+
+func createCookie(w http.ResponseWriter, username string) {
+	cookieUUID, err := uuid.NewV4()
+	if err != nil {
+		log.Fatal("Error making uuid for cookie")
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	tokenString := cookieUUID.String()
+
+	expiresAt := time.Now().Add(120 * time.Second)
+	sessions[tokenString] = session{
+		UserData: username,
+		expiry:   expiresAt,
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:    "session_token",
+		Value:   tokenString,
+		Expires: expiresAt,
+		Path:    "/",
+	})
+}
+
+func login(w http.ResponseWriter, database *sql.DB, email, password string) (bool, error) {
+	correctPassword := false
+	exists, err := checkEmail(database, email)
+	if err != nil {
+		log.Fatal("Error checking credentials:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return false, err
+	}
+	if !exists {
+		log.Fatal("Error email doesnt exist:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return false, err
+	}
+	stmt := `SELECT	PASSWORD FROM USER WHERE EMAIL = ?`
+	row := database.QueryRow(stmt, email)
+	var dbPassword string
+	err = row.Scan(&dbPassword)
+	if err != nil {
+		log.Fatal("Error scaning database:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return false, err
+	}
+	fmt.Println(dbPassword)
+	fmt.Println(password)
+	if dbPassword == password {
+		correctPassword = true
+	}
+	return correctPassword, nil
 }

@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"text/template"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -18,46 +19,56 @@ func Homepage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Method != "GET" {
+	if r.Method != "GET" && r.Method != "POST" {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
+	token := true
+
+	c, err := r.Cookie("session_token")
+	if err != nil {
+		fmt.Println("noo cookie :(")
+		token = false
+	}
+
+	if token {
+		sessionToken := c.Value
+		fmt.Println("COOKIE >:D")
+
+		userSession := sessions[sessionToken]
+		if userSession.isExpired() {
+			delete(sessions, sessionToken)
+		} else {
+			userSession.expiry = time.Now().Add(120 * time.Second)
+		}
+		fmt.Println(userSession.UserData)
+	}
+
 	var P []Post
-	Id := "asdfd"
-	posttext := "this is my first post"
-	creator := "asdfa"
-	likes := 1
-	dislikes := 0
-	date := "today"
 
-	database, err := sql.Open("sqlite3", "./database.db")
-	if err != nil {
-		log.Fatalln("Error opening database:", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-	defer database.Close()
+	if r.Method == "GET" {
+		database, err := sql.Open("sqlite3", "./database.db")
+		if err != nil {
+			log.Fatalln("Error opening database:", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		defer database.Close()
 
-	err = insertPost(database, Id, posttext, creator, date, likes, dislikes)
-	if err != nil {
-		log.Fatalln("Error inserting post into database:", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
+		err = displaydata(database, &P)
+		if err != nil {
+			log.Fatalln("Error fetching data from database:", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
 
-	err = displaydata(database, &P)
-	if err != nil {
-		log.Fatalln("Error fetching data from database:", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	err = hometmp.Execute(w, P)
-	if err != nil {
-		log.Fatalln("Error executing template:", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
+		err = hometmp.Execute(w, P)
+		if err != nil {
+			log.Fatalln("Error executing template:", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
 	}
 }
 
