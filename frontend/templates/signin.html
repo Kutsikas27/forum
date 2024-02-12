@@ -5,7 +5,7 @@
         <link rel="stylesheet" href="static/signin.css" type="text/css">
     </head>
     <body>
-        <h1>LOG IN</h1>
+        <h1>SIGN UP</h1>
             <form  method="post" action="/signin">
                 <label for="Mail">Email:</label>
                 <input type="text" class="Email" name="Email" minlength="2">
@@ -16,7 +16,18 @@
                 <label for="Password">Password:</label>
                 <input type="password" class="Password" name="Password" minlength="2">
                 <br>
-                <button type="submit">Sign Up</button>
+                <button type="submit" name="operation" value="signup">Sign Up</button>
+            </form>
+            <br>
+        <h1>LOG IN</h1>
+            <form method="post" action="/signin">
+                <label for="Mail">Email:</label>
+                <input type="text" class="Email" name="Email" minlength="2">
+                <br>
+                <label for="Password">Password:</label>
+                <input type="password" class="Password" name="Password" minlength="2">
+                <br>
+                <button type="submit" name="operation" value="Login">Log In</button>
             </form>
     </body>
 </html>
