@@ -85,7 +85,7 @@
     const email2 = document.getElementById("email2");
     const name2 = document.getElementById("name2");
 
-    const checkPassword = () => {
+    function checkPassword() {
         const pass1Value = pass1.value;
         const pass2Value = pass2.value;
         if (pass1Value === pass2Value) {
@@ -111,7 +111,7 @@
         }
     };
 
-    const areInputsEmpty = inputs => {
+    function areInputsEmpty(inputs) {
         let asnwer = false;
         for (let i = 0; i < inputs.length; i++) {
             if (inputs[i].value.trim() === '') {
@@ -130,7 +130,7 @@
         return asnwer; // None of the inputs are empty
     };
 
-    const ValidateForm2 = () => {
+    function ValidateForm2() {
         const inputs = [email, name, pass1, pass2]
         if (areInputsEmpty(inputs) || !checkPassword()) {
             event.preventDefault();
@@ -140,7 +140,7 @@
         }
     };
 
-    const ValidateForm = () => {
+    function ValidateForm() {
         inputs2 = [email2, name2];
         if (areInputsEmpty(inputs2)) {
             event.preventDefault();
