@@ -1,13 +1,8 @@
 
     const pass1 = document.getElementById("pass1");
     const pass2 = document.getElementById("pass2");
-    const email = document.getElementById("email");
-    const name = document.getElementById("name");
-    const signbut = document.getElementById("signbut");
     const errorMessage = document.getElementById("errorMessage");
-    const email2 = document.getElementById("email2");
-    const name2 = document.getElementById("name2");
-
+    
     //if passwords dont match eachother if will give an error
     function checkPassword() {
         const pass1Value = pass1.value;
@@ -57,7 +52,9 @@
 
     // checks if inputs for sign up are ok
     function ValidateForm2() {
-        const inputs = [email, name, pass1, pass2]
+        const email = document.getElementById("email");
+        const name = document.getElementById("name");
+        const inputs = [email, name, pass1, pass2];
         if (areInputsEmpty(inputs) || !checkPassword()) {
             event.preventDefault();
             console.log('empty');
@@ -66,6 +63,8 @@
 
     // checks if inputs for log in are ok
     function ValidateForm() {
+        const email2 = document.getElementById("email2");
+        const name2 = document.getElementById("name2");
         inputs2 = [email2, name2];
         if (areInputsEmpty(inputs2)) {
             event.preventDefault();
