@@ -45,25 +45,14 @@ func Homepage(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(userSession.UserData)
 	}
 
-	var P []Post
-
 	if r.Method == "GET" {
-		database, err := sql.Open("sqlite3", "./database.db")
+		err := initializeTable()
 		if err != nil {
-			log.Fatalln("Error opening database:", err)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
+			log.Fatal(err)
 		}
-		defer database.Close()
+		posts := fetchPostsFromDB()
 
-		err = displaydata(database, &P)
-		if err != nil {
-			log.Fatalln("Error fetching data from database:", err)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
-
-		err = hometmp.Execute(w, P)
+		err = hometmp.Execute(w, posts)
 		if err != nil {
 			log.Fatalln("Error executing template:", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -72,49 +61,58 @@ func Homepage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func insertPost(db *sql.DB, id, post, creator, date string, likes, dislikes int) error {
-	insertapost := `INSERT INTO POST(POSTID, CONTENT, CREATORID, LIKES, DISLIKES, DATE) VALUES(?, ?, ?, ?, ?, ?)`
-	statement, err := db.Prepare(insertapost)
-	if err != nil {
-		return fmt.Errorf("error preparing statement: %v", err)
-	}
-	defer statement.Close()
-	fmt.Println(id, post, creator, likes, dislikes, date)
-	_, err = statement.Exec(id, post, creator, likes, dislikes, date)
-	if err != nil {
-		return fmt.Errorf("error executing statement: %v", err)
-	}
+func fetchPostsFromDB() []Post {
+	var posts []Post
 
-	return nil
-}
-
-func displaydata(db *sql.DB, P *[]Post) error {
-	rows, err := db.Query("SELECT * FROM POST")
+	db, err := sql.Open("sqlite3", "database.db")
 	if err != nil {
-		return fmt.Errorf("error querying database: %v", err)
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	rows, err := db.Query("SELECT id, title, text, category FROM post")
+	if err != nil {
+		log.Fatal(err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var (
-			id        string
-			posttext  string
-			creatorid string
-			likes     int
-			dislikes  int
-			data      string
-		)
-
-		err := rows.Scan(&id, &posttext, &creatorid, &likes, &dislikes, &data)
+		var post Post
+		err := rows.Scan(&post.ID, &post.Title, &post.Text, &post.Category)
 		if err != nil {
-			return fmt.Errorf("error scanning row: %v", err)
+			log.Fatal(err)
 		}
+		posts = append(posts, post)
+	}
+	err = rows.Err()
+	if err != nil {
+		log.Fatal(err)
+	}
+	reversedPosts := make([]Post, len(posts))
 
-		newPost := Post{
-			ID:   id,
-			Text: posttext,
-		}
-		*P = append(*P, newPost)
+	// make newer posts appear on top of screen
+	lastIndex := len(posts) - 1
+	for i, post := range posts {
+		reversedPosts[lastIndex-i] = post
+	}
+
+	return reversedPosts
+}
+func initializeTable() error {
+	db, err := sql.Open("sqlite3", "database.db")
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS post (
+		id INTEGER PRIMARY KEY,
+		title TEXT,
+		text TEXT,
+		category TEXT
+	)`)
+	if err != nil {
+		return err
 	}
 
 	return nil

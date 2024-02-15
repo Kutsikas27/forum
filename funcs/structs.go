@@ -1,12 +1,10 @@
 package funcs
 
 type Post struct {
-	ID       string
+	ID       int
+	Title    string
 	Text     string
-	CID      string
-	Likes    int
-	Dislikes int
-	Date     string
+	Category string
 }
 
 type User struct {
@@ -16,13 +14,13 @@ type User struct {
 }
 
 type Comment struct {
-	ReplyId  string
-	Id       string
-	Text     string
-	creator  string
-	Likes    int
-	dislikes int
-	Date     string
+	ReplyId string
+	Id      string
+	Text    string
+	// creator  string
+	Likes int
+	// dislikes int
+	Date string
 }
 
 type Categorys struct {

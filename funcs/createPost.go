@@ -1,7 +1,7 @@
 package funcs
 
 import (
-	"fmt"
+	"database/sql"
 	"log"
 	"net/http"
 	"text/template"
@@ -25,15 +25,26 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
-	} else if r.Method == "POST" {
-		text := r.FormValue("text")
-		title := r.FormValue("title")
-		category := r.FormValue("category")
-		http.Redirect(w, r, "/", http.StatusFound)
-		fmt.Println("text", text, "\n",
-			"title", title, "\n",
-			category)
+	}
+	if r.Method == "POST" {
+		r.ParseForm()
+		title := r.Form.Get("title")
+		text := r.Form.Get("text")
+		category := r.Form.Get("category")
 
+		insertPostIntoDB(title, text, category)
+		http.Redirect(w, r, "/", http.StatusFound)
 	}
 
+}
+func insertPostIntoDB(title, text, category string) {
+	db, err := sql.Open("sqlite3", "database.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = db.Exec("INSERT INTO post(title, text, category) VALUES (?, ?, ?)", title, text, category)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

@@ -94,54 +94,17 @@
               </div>
             </div>
             <div class="col-md-7 col-sm-12 w-50">
+              {{range .}}
               <div class="card border-primary mb-3">
                 <a href="#simple-list-item-1">
-                  <div class="card-header">#reactjs</div>
+                  <div class="card-header">{{.Category}}</div>
                   <div class="card-body">
-                    <h4 class="card-title">
-                      Tell me about what you've most recently learned in React
-                    </h4>
-                    <p class="card-text">
-                      I'll start with a basic one. Just learned about Daisy UI
-                      and it seems to be the next great thing for component
-                      libraries.
-                    </p>
+                    <h4 class="card-title">{{.Title}}</h4>
+                    <p class="card-text">{{.Text}}</p>
                   </div>
                 </a>
               </div>
-              <div class="card border-primary mb-3">
-                <a href="#simple-list-item-1">
-                  <div class="card-header">#eesti</div>
-                  <div class="card-body">
-                    <h4 class="card-title">
-                      Kogemusi autoteenustega VOCOs (Tartu)?
-                    </h4>
-                    <p class="card-text">
-                      Tere! Kas olete ise kogenud või kuulnud midagi
-                      autoteenuste kvaliteedist Tartu Rakenduslikus Kolledžis?
-                      Kas vastab tõele, et seal on soodsamad hinnad, kui
-                      erafirmades? Kas soodsam teenus tähendab ka kehvemat
-                      teenust? Esimese asjana huvitab värvitöö, aga tulevikus ka
-                      nt sildade reguleerimine ja rehvivahetus.
-                    </p>
-                  </div>
-                </a>
-              </div>
-              <div class="card border-primary mb-3">
-                <a href="#simple-list-item-1">
-                  <div class="card-header">#golang</div>
-                  <div class="card-body">
-                    <h4 class="card-title">
-                      Unsuccessful attempts to learn Golang
-                    </h4>
-                    <p class="card-text">
-                      The name of the book is "Learning Go: An Idiomatic
-                      Approach to Real-world Go Programming", and the book
-                      starts with a great quote by Aaron Schlesinger which is:
-                    </p>
-                  </div>
-                </a>
-              </div>
+              {{end}}
             </div>
             <div class="col w-25"></div>
           </div>

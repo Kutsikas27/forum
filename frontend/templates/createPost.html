@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -29,7 +30,7 @@
               >Log In</a
             >
             <a
-              href="/createPost.html"
+              href="/createPost"
               class="btn postBtn btn-primary align-self-center"
             >
               Create Post
@@ -59,48 +60,47 @@
                 </a>
               </div>
             </div>
-
             <div class="col-md-7 col-sm-12 w-50">
               <h4>Create a post</h4>
-              <form method="post" action="/submit">
+              <form method="post" action="/createPost">
                 <div class="form-floating">
                   <textarea
                     class="form-control"
-                    id="floatingTextarea"
+                    id="titlearea"
                     name="title"
+                    onkeyup="success()"
                   ></textarea>
                   <label for="floatingTextarea">Title</label>
                 </div>
                 <div class="form-floating">
                   <textarea
                     class="form-control"
-                    id="floatingTextarea2"
-                    style="height: 200px"
+                    id="textarea"
+                    style="height: 250px"
                     name="text"
+                    onkeyup="success()"
                   ></textarea>
                   <label for="floatingTextarea2">Text</label>
 
-                  <div class="dropdown">
-                    <button
-                      class="btn btn-secondary dropdown-toggle"
-                      type="button"
-                      data-bs-toggle="dropdown"
-                      aria-expanded="false"
-                    >
-                      Category
-                    </button>
-                    <ul class="dropdown-menu">
-                      <li><a class="dropdown-item" href="#">category1</a></li>
-                      <li>
-                        <a class="dropdown-item" href="#">category2</a>
-                      </li>
-                      <li>
-                        <a class="dropdown-item" href="#">category3</a>
-                      </li>
-                    </ul>
-                  </div>
+                  <select
+                    class="form-select"
+                    aria-label="Default select example"
+                    name="category"
+                    id="category"
+                    onchange="success()"
+                  >
+                    <option selected>Choose category</option>
+                    <option value="react">react</option>
+                    <option value="vue">vue</option>
+                    <option value="angular">angular</option>
+                  </select>
                   <hr />
-                  <button class="submitBtn btn btn-dark" type="submit">
+                  <button
+                    class="submitBtn btn btn-dark"
+                    type="submit"
+                    disabled="true"
+                    id="submitBtn"
+                  >
                     Post
                   </button>
                 </div>
@@ -112,6 +112,7 @@
         </div>
       </div>
     </main>
+    <script src="/static/createPost.js"></script>
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
       integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
@@ -120,6 +121,9 @@
   </body>
 </html>
 <style>
+  .form-select {
+    padding: 0px, 0px, 0px;
+  }
   .submitBtn {
     float: right;
   }
