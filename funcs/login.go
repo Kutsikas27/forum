@@ -20,6 +20,7 @@ type session struct {
 	expiry   time.Time
 }
 
+// cookie expiery time
 func (s session) isExpired() bool {
 	return s.expiry.Before(time.Now())
 }
@@ -78,6 +79,7 @@ func LoginPage(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// checks if the user cridentials are valid
 func Credentials(w http.ResponseWriter, database *sql.DB, email, name, password string) {
 	exists1, err := checkEmail(database, email)
 	if err != nil {
@@ -104,6 +106,7 @@ func Credentials(w http.ResponseWriter, database *sql.DB, email, name, password 
 
 }
 
+// checks if email is aleady in use
 func checkEmail(db *sql.DB, email string) (bool, error) {
 	valid := validateEmail(email)
 	if !valid {
@@ -120,11 +123,13 @@ func checkEmail(db *sql.DB, email string) (bool, error) {
 	return true, nil
 }
 
+// checks if the email is valid
 func validateEmail(email string) bool {
 	_, err := mail.ParseAddress(email)
 	return err == nil
 }
 
+// checks if the username already in use
 func checkUserName(db *sql.DB, name string) (bool, error) {
 	stmt := `SELECT	USERNAME FROM USER WHERE USERNAME = ?`
 	err := db.QueryRow(stmt, name).Scan(&name)
@@ -137,6 +142,7 @@ func checkUserName(db *sql.DB, name string) (bool, error) {
 	return true, nil
 }
 
+// puts newly created user into the database
 func insertUser(db *sql.DB, email, name, password string) error {
 	useruuid, err := uuid.NewV4()
 	if err != nil {
@@ -158,6 +164,7 @@ func insertUser(db *sql.DB, email, name, password string) error {
 	return nil
 }
 
+// creates cookie to save userdata
 func createCookie(w http.ResponseWriter, username string) {
 	cookieUUID, err := uuid.NewV4()
 	if err != nil {

@@ -37,6 +37,8 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+// puts newly created post into the database
 func insertPostIntoDB(title, text, category string) {
 	db, err := sql.Open("sqlite3", "database.db")
 	if err != nil {
