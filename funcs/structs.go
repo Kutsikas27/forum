@@ -5,6 +5,7 @@ type Post struct {
 	Title    string
 	Text     string
 	Category string
+	Creator  string
 }
 
 type User struct {

@@ -44,7 +44,6 @@ func Homepage(w http.ResponseWriter, r *http.Request) {
 		}
 		fmt.Println(userSession.UserData)
 	}
-
 	if r.Method == "GET" {
 		err := initializeTable()
 		if err != nil {
@@ -71,7 +70,7 @@ func fetchPostsFromDB() []Post {
 	}
 	defer db.Close()
 
-	rows, err := db.Query("SELECT id, title, text, category FROM post")
+	rows, err := db.Query("SELECT id, title, text, category, creator FROM post")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -79,7 +78,7 @@ func fetchPostsFromDB() []Post {
 
 	for rows.Next() {
 		var post Post
-		err := rows.Scan(&post.ID, &post.Title, &post.Text, &post.Category)
+		err := rows.Scan(&post.ID, &post.Title, &post.Text, &post.Category, &post.Creator)
 		if err != nil {
 			log.Fatal(err)
 		}
