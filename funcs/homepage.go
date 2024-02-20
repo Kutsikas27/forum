@@ -31,7 +31,17 @@ func Homepage(w http.ResponseWriter, r *http.Request) {
 
 		userSession, exists := sessions[sessionToken]
 		if !exists || userSession.isExpired() {
+			fmt.Println(exists, userSession.isExpired())
+			fmt.Println("why cookey no work :(")
 			delete(sessions, sessionToken)
+
+			// Delete the cookie by setting an expired cookie
+			deletedCookie := http.Cookie{
+				Name:    "session_token",
+				Value:   "",
+				Expires: time.Unix(0, 0),
+			}
+			http.SetCookie(w, &deletedCookie)
 		} else {
 			userSession.expiry = time.Now().Add(120 * time.Second)
 			fmt.Println(userSession.UserData)

@@ -83,25 +83,22 @@ func LoginPage(w http.ResponseWriter, r *http.Request) {
 func Credentials(w http.ResponseWriter, database *sql.DB, email, name, password string) {
 	exists1, err := checkEmail(database, email)
 	if err != nil {
-		log.Fatal("Error checking credentials:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	exists2, err := checkUserName(database, name)
 	if err != nil {
-		log.Fatal("Error checking credentials:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 	if exists1 || exists2 {
-		log.Fatal("Error username or email already exists")
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 
 	err = insertUser(database, email, name, password)
 	if err != nil {
-		log.Fatal("Error adding user to database")
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 
 }
@@ -168,26 +165,31 @@ func insertUser(db *sql.DB, email, name, password string) error {
 func createCookie(w http.ResponseWriter, username string) {
 	cookieUUID, err := uuid.NewV4()
 	if err != nil {
-		log.Fatal("Error making uuid for cookie")
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	tokenString := cookieUUID.String()
 
-	expiresAt := time.Now().Add(120 * time.Second)
+	expiresAt := time.Now().Add(3600 * time.Second)
 	sessions[tokenString] = session{
 		UserData: username,
 		expiry:   expiresAt,
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name:     "session_token",
-		Value:    tokenString,
-		Expires:  expiresAt,
-		Path:     "/",
-		HttpOnly: true,
-		Secure:   true,
+		Name:       "session_token",
+		Value:      tokenString,
+		Path:       "/",
+		Domain:     "",
+		Expires:    expiresAt,
+		RawExpires: "",
+		MaxAge:     3600,
+		Secure:     true,
+		HttpOnly:   true,
+		SameSite:   0,
+		Raw:        "",
+		Unparsed:   []string{},
 	})
 	fmt.Println("cookie created")
 }

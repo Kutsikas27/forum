@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"text/template"
+	"time"
 )
 
 // commenttmp is a template for rendering the comment.html file.
@@ -15,6 +16,33 @@ var commenttmp = template.Must(template.New("comment.html").ParseFiles("frontend
 func PostComment(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" && r.Method != "POST" {
 		log.Fatal("Invalid Method")
+	}
+
+	var username string
+	var sessionToken string
+	cookie, err := r.Cookie("session_token")
+	if err == nil {
+		sessionToken = cookie.Value
+		fmt.Println("COOKIE >:D")
+
+		userSession, exists := sessions[sessionToken]
+		if !exists || userSession.isExpired() {
+			delete(sessions, sessionToken)
+			deletedCookie := http.Cookie{
+				Name:    "session_token",
+				Value:   "",
+				Expires: time.Unix(0, 0),
+			}
+			http.SetCookie(w, &deletedCookie)
+		} else {
+			userSession.expiry = time.Now().Add(120 * time.Second)
+			username = userSession.UserData
+			fmt.Println(userSession.UserData)
+		}
+	} else if err != http.ErrNoCookie {
+		fmt.Println("COOKIE >:(")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	if r.Method == "GET" {
@@ -28,8 +56,12 @@ func PostComment(w http.ResponseWriter, r *http.Request) {
 		PC = PostComments{P, C}
 		commenttmp.Execute(w, PC)
 	} else if r.Method == "POST" {
+		if username == "" {
+			http.Error(w, "Log in to make comment", http.StatusUnauthorized)
+			return
+		}
 		comment := r.FormValue("commenttext")
-		addComment(comment, r.URL.Query().Get("postId"))
+		addComment(comment, r.URL.Query().Get("postId"), username)
 		http.Redirect(w, r, "/", http.StatusFound)
 	}
 }
@@ -81,15 +113,14 @@ func getComments(postId string) []Comment {
 }
 
 // addComment adds a new comment to the database for the given postId.
-func addComment(comment string, postId string) {
+func addComment(comment, postId, username string) {
 	db, err := sql.Open("sqlite3", "database.db")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
-	user := "testuser"
 	stmt := `INSERT INTO COMMENT (REPLYID, CONTENT, CREATORID) VALUES (?, ?, ?)`
-	_, err = db.Exec(stmt, postId, comment, user)
+	_, err = db.Exec(stmt, postId, comment, username)
 	if err != nil {
 		log.Fatal(err)
 	}
