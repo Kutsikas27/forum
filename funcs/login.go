@@ -25,12 +25,12 @@ func (s session) isExpired() bool {
 	return s.expiry.Before(time.Now())
 }
 
-var logintmp = template.Must(template.New("signin.html").ParseFiles("frontend/templates/signin.html"))
+var logintmp = template.Must(template.New("login.html").ParseFiles("frontend/templates/login.html"))
 
 func LoginPage(w http.ResponseWriter, r *http.Request) {
 	email, name, password := "", "", ""
 
-	if r.URL.Path != "/signin" {
+	if r.URL.Path != "/login" {
 		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}

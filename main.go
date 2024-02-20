@@ -10,7 +10,7 @@ import (
 func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./frontend/static"))))
 	http.HandleFunc("/", funcs.Homepage)
-	http.HandleFunc("/signin", funcs.LoginPage)
+	http.HandleFunc("/login", funcs.LoginPage)
 	http.HandleFunc("/createPost", funcs.CreatePost)
 	http.HandleFunc("/comments/", funcs.PostComment)
 	addr := ":8080"
