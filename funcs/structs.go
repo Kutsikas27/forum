@@ -6,6 +6,7 @@ type Post struct {
 	Text     string
 	Category string
 	Creator  string
+	Uuid     string
 }
 
 type User struct {
@@ -14,12 +15,17 @@ type User struct {
 	UserName string
 }
 
+type PostComments struct {
+	Post     Post
+	Comments []Comment
+}
+
 type Comment struct {
-	ReplyId string
+	PostId  string
 	Id      string
 	Text    string
-	// creator  string
-	Likes int
+	Creator string
+	// Likes int
 	// dislikes int
 	Date string
 }

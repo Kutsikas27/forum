@@ -61,17 +61,17 @@ func LoginPage(w http.ResponseWriter, r *http.Request) {
 		} else if r.FormValue("operation") == "Login" {
 			password = r.FormValue("Password")
 			email = r.FormValue("Email")
-			correctCridentials, err := login(w, database, email, password)
+			user, err := login(w, database, email, password)
 			if err != nil {
 				log.Fatal("Error checking login:", err)
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 				return
 			}
-			if !correctCridentials {
+			if user == "" {
 				log.Fatal("Wrong password")
 				return
 			}
-			createCookie(w, name)
+			createCookie(w, user)
 			http.Redirect(w, r, "/", http.StatusFound)
 		}
 
@@ -182,25 +182,28 @@ func createCookie(w http.ResponseWriter, username string) {
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name:    "session_token",
-		Value:   tokenString,
-		Expires: expiresAt,
-		Path:    "/",
+		Name:     "session_token",
+		Value:    tokenString,
+		Expires:  expiresAt,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   true,
 	})
+	fmt.Println("cookie created")
 }
 
-func login(w http.ResponseWriter, database *sql.DB, email, password string) (bool, error) {
-	correctPassword := false
+func login(w http.ResponseWriter, database *sql.DB, email, password string) (string, error) {
+	Username := ""
 	exists, err := checkEmail(database, email)
 	if err != nil {
 		log.Fatal("Error checking credentials:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return false, err
+		return "", err
 	}
 	if !exists {
 		log.Fatal("Error email doesnt exist:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return false, err
+		return "", err
 	}
 	stmt := `SELECT	PASSWORD FROM USER WHERE EMAIL = ?`
 	row := database.QueryRow(stmt, email)
@@ -209,12 +212,20 @@ func login(w http.ResponseWriter, database *sql.DB, email, password string) (boo
 	if err != nil {
 		log.Fatal("Error scaning database:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return false, err
+		return "", err
 	}
-	fmt.Println(dbPassword)
-	fmt.Println(password)
+
 	if dbPassword == password {
-		correctPassword = true
+		stmt := `SELECT	USERNAME FROM USER WHERE EMAIL = ?`
+		row := database.QueryRow(stmt, email)
+		var names string
+		err = row.Scan(&names)
+		if err != nil {
+			log.Fatal("Error scaning database:", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return "", err
+		}
+		Username = names
 	}
-	return correctPassword, nil
+	return Username, nil
 }

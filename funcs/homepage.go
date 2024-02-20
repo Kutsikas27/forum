@@ -23,26 +23,23 @@ func Homepage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
-
-	token := true
-
-	c, err := r.Cookie("session_token")
-	if err != nil {
-		fmt.Println("noo cookie :(")
-		token = false
-	}
-
-	if token {
-		sessionToken := c.Value
+	var sessionToken string
+	cookie, err := r.Cookie("session_token")
+	if err == nil {
+		sessionToken = cookie.Value
 		fmt.Println("COOKIE >:D")
 
-		userSession := sessions[sessionToken]
-		if userSession.isExpired() {
+		userSession, exists := sessions[sessionToken]
+		if !exists || userSession.isExpired() {
 			delete(sessions, sessionToken)
 		} else {
 			userSession.expiry = time.Now().Add(120 * time.Second)
+			fmt.Println(userSession.UserData)
 		}
-		fmt.Println(userSession.UserData)
+	} else if err != http.ErrNoCookie {
+		fmt.Println("COOKIE >:(")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	if r.Method == "GET" {
 		err := initializeTable()
@@ -70,7 +67,7 @@ func fetchPostsFromDB() []Post {
 	}
 	defer db.Close()
 
-	rows, err := db.Query("SELECT id, title, text, category, creator FROM post")
+	rows, err := db.Query("SELECT id, title, text, category, creator, uuid FROM post")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -78,7 +75,7 @@ func fetchPostsFromDB() []Post {
 
 	for rows.Next() {
 		var post Post
-		err := rows.Scan(&post.ID, &post.Title, &post.Text, &post.Category, &post.Creator)
+		err := rows.Scan(&post.ID, &post.Title, &post.Text, &post.Category, &post.Creator, &post.Uuid)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -111,7 +108,9 @@ func initializeTable() error {
 		id INTEGER PRIMARY KEY,
 		title TEXT,
 		text TEXT,
-		category TEXT
+		category TEXT,
+		creator TEXT,
+		uuid TEXT
 	)`)
 	if err != nil {
 		return err

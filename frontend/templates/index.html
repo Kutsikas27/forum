@@ -96,7 +96,7 @@
             <div class="col-md-7 col-sm-12 w-50">
               {{range .}}
               <div class="card border-primary mb-3">
-                <a href="#simple-list-item-1">
+                <a href="/comments/?postId={{.Uuid}}">
                   <div class="card-header">{{.Category}} {{.Creator}}</div>
                   <div class="card-body">
                     <h4 class="card-title">{{.Title}}</h4>
