@@ -57,24 +57,21 @@ func LoginPage(w http.ResponseWriter, r *http.Request) {
 			email = r.FormValue("Email")
 			Credentials(w, database, email, name, password)
 			createCookie(w, name)
-			http.Redirect(w, r, "/", http.StatusFound)
 		} else if r.FormValue("operation") == "Login" {
 			password = r.FormValue("Password")
 			email = r.FormValue("Email")
 			user, err := login(w, database, email, password)
 			if err != nil {
-				log.Fatal("Error checking login:", err)
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				log.Println("Error logging in:", err)
 				return
 			}
 			if user == "" {
-				log.Fatal("Wrong password")
+				http.Error(w, "Invalid Credentials", http.StatusUnauthorized)
 				return
 			}
 			createCookie(w, user)
-			http.Redirect(w, r, "/", http.StatusFound)
 		}
-
+		http.Redirect(w, r, "/", http.StatusFound)
 	}
 
 }
