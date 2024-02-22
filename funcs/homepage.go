@@ -44,7 +44,7 @@ func Homepage(w http.ResponseWriter, r *http.Request) {
 			http.SetCookie(w, &deletedCookie)
 		} else {
 			userSession.expiry = time.Now().Add(120 * time.Second)
-			fmt.Println(userSession.UserData)
+			fmt.Println(userSession.UserName)
 		}
 	} else if err != http.ErrNoCookie {
 		fmt.Println("COOKIE >:(")
@@ -64,6 +64,8 @@ func Homepage(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
+	} else if r.Method == "POST" {
+
 	}
 }
 
@@ -82,8 +84,9 @@ func fetchPostsFromDB() []Post {
 		log.Fatal(err)
 	}
 	defer rows.Close()
-
+	count := 0
 	for rows.Next() {
+		count++
 		var post Post
 		err := rows.Scan(&post.ID, &post.Title, &post.Text, &post.Category, &post.Creator, &post.Uuid)
 		if err != nil {
@@ -95,6 +98,7 @@ func fetchPostsFromDB() []Post {
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println(count)
 	reversedPosts := make([]Post, len(posts))
 
 	// make newer posts appear on top of screen

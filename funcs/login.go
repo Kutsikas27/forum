@@ -16,7 +16,8 @@ import (
 var sessions = map[string]session{}
 
 type session struct {
-	UserData string
+	UserUUID string
+	UserName string
 	expiry   time.Time
 }
 
@@ -56,7 +57,7 @@ func LoginPage(w http.ResponseWriter, r *http.Request) {
 			password = r.FormValue("Password")
 			email = r.FormValue("Email")
 			Credentials(w, database, email, name, password)
-			createCookie(w, name)
+			createCookie(w, database, name)
 		} else if r.FormValue("operation") == "Login" {
 			password = r.FormValue("Password")
 			email = r.FormValue("Email")
@@ -69,7 +70,7 @@ func LoginPage(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "Invalid Credentials", http.StatusUnauthorized)
 				return
 			}
-			createCookie(w, user)
+			createCookie(w, database, name)
 		}
 		http.Redirect(w, r, "/", http.StatusFound)
 	}
@@ -159,7 +160,15 @@ func insertUser(db *sql.DB, email, name, password string) error {
 }
 
 // creates cookie to save userdata
-func createCookie(w http.ResponseWriter, username string) {
+func createCookie(w http.ResponseWriter, db *sql.DB, username string) {
+	stmt := `SELECT	UUID FROM USER WHERE USERNAME = ?`
+	row := db.QueryRow(stmt, username)
+	var useruuid string
+	err := row.Scan(&useruuid)
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 	cookieUUID, err := uuid.NewV4()
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -170,7 +179,8 @@ func createCookie(w http.ResponseWriter, username string) {
 
 	expiresAt := time.Now().Add(3600 * time.Second)
 	sessions[tokenString] = session{
-		UserData: username,
+		UserUUID: useruuid,
+		UserName: username,
 		expiry:   expiresAt,
 	}
 

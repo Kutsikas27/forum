@@ -39,8 +39,8 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 			http.SetCookie(w, &deletedCookie)
 		} else {
 			userSession.expiry = time.Now().Add(120 * time.Second)
-			username = userSession.UserData
-			fmt.Println(userSession.UserData)
+			username = userSession.UserName
+			fmt.Println(userSession.UserName)
 		}
 	} else if err != http.ErrNoCookie {
 		fmt.Println("COOKIE >:(")
@@ -85,7 +85,7 @@ func insertPostIntoDB(title, text, category, username string) {
 		log.Fatal(err)
 	}
 	strPostUUID := postUUID.String()
-	_, err = db.Exec("INSERT INTO post(title, text, category, creator, uuid) VALUES (?, ?, ?, ?, ?)", title, text, category, username, strPostUUID)
+	_, err = db.Exec("INSERT INTO post(title, text, category, creator, uuid) VALUES (?, ?, ?, ?, ?, ?, ?)", title, text, category, username, strPostUUID)
 	if err != nil {
 		log.Fatal(err)
 	}
