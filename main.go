@@ -13,6 +13,7 @@ func main() {
 	http.HandleFunc("/login", funcs.LoginPage)
 	http.HandleFunc("/createPost", funcs.CreatePost)
 	http.HandleFunc("/comments/", funcs.PostComment)
+
 	addr := ":8080"
 	fmt.Printf("Forum running at localhost%s\n", addr)
 	err := http.ListenAndServe(addr, nil)
