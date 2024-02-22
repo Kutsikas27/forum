@@ -23,6 +23,7 @@ func Homepage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
+	var useruuid string
 	var sessionToken string
 	cookie, err := r.Cookie("session_token")
 	if err == nil {
@@ -45,6 +46,7 @@ func Homepage(w http.ResponseWriter, r *http.Request) {
 		} else {
 			userSession.expiry = time.Now().Add(120 * time.Second)
 			fmt.Println(userSession.UserName)
+			useruuid = userSession.UserUUID
 		}
 	} else if err != http.ErrNoCookie {
 		fmt.Println("COOKIE >:(")
@@ -63,6 +65,89 @@ func Homepage(w http.ResponseWriter, r *http.Request) {
 			log.Fatalln("Error executing template:", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
+		}
+	} else if r.Method == "POST" {
+		if useruuid == "" {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		db, err := sql.Open("sqlite3", "database.db")
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer db.Close()
+		likes := r.FormValue("like")
+		dislieks := r.FormValue("dislike")
+		fmt.Println(likes)
+		fmt.Println(dislieks)
+		if likes != "" {
+			exists1, err := checkLikes(db, likes, useruuid)
+			if err != nil {
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				return
+			}
+			exists2, err := checkDislikes(db, likes, useruuid)
+			if err != nil {
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				return
+			}
+			if !exists1 && !exists2 {
+				stmt := "INSERT INTO likes (postid, userid) VALUES (?, ?)"
+				_, err = db.Exec(stmt, likes, useruuid)
+				if err != nil {
+					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+					return
+				}
+			} else if exists2 {
+				stmt := "DELETE FROM dislikes WHERE postid = ? AND userid = ?"
+				_, err = db.Exec(stmt, likes, useruuid)
+				if err != nil {
+					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+					return
+				}
+				stmt = "INSERT INTO likes (postid, userid) VALUES (?, ?)"
+				_, err = db.Exec(stmt, likes, useruuid)
+				if err != nil {
+					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+					return
+				}
+			} else if exists1 {
+				// do nothing
+			}
+		} else if dislieks != "" {
+			exists1, err := checkLikes(db, dislieks, useruuid)
+			if err != nil {
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				return
+			}
+			exists2, err := checkDislikes(db, dislieks, useruuid)
+			if err != nil {
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				return
+			}
+			if !exists1 && !exists2 {
+				stmt := "INSERT INTO dislikes (postid, userid) VALUES (?, ?)"
+				_, err = db.Exec(stmt, dislieks, useruuid)
+				if err != nil {
+					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+					return
+				}
+			} else if exists1 {
+				stmt := "DELETE FROM likes WHERE postid = ? AND userid = ?"
+				_, err = db.Exec(stmt, dislieks, useruuid)
+				if err != nil {
+					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+					return
+				}
+				stmt = "INSERT INTO dislikes (postid, userid) VALUES (?, ?)"
+				_, err = db.Exec(stmt, dislieks, useruuid)
+				if err != nil {
+					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+					return
+				}
+			} else if exists2 {
+				// do nothing
+			}
 		}
 	}
 }
@@ -127,4 +212,28 @@ func initializeTable() error {
 	}
 
 	return nil
+}
+
+func checkLikes(db *sql.DB, postId, userId string) (bool, error) {
+	stmt := "SELECT * FROM likes WHERE postid = ? AND userid = ?"
+	err := db.QueryRow(stmt, postId, userId).Scan(&postId, &userId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
+func checkDislikes(db *sql.DB, postId, userId string) (bool, error) {
+	stmt := "SELECT * FROM dislikes WHERE postid = ? AND userid = ?"
+	err := db.QueryRow(stmt, postId, userId).Scan(&postId, &userId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }
