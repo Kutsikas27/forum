@@ -20,7 +20,6 @@ type session struct {
 	expiry   time.Time
 }
 
-// cookie expiery time
 func (s session) isExpired() bool {
 	return s.expiry.Before(time.Now())
 }
@@ -60,6 +59,7 @@ func LoginPage(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			createCookie(w, database, user)
+			fmt.Println("logged in as:", email, "username:", user, "password", password)
 		}
 
 	}
