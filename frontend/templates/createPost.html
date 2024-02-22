@@ -118,83 +118,81 @@
           </div>
         </div>
       </div>
-      <div class="modal fade" id="exampleModal1" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h1 class="modal-title fs-5" id="exampleModalLabel">Log in</h1>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <form method="post" action="/login" onsubmit="return ValidateForm()">
-                <div class="form-floating">
-                    <input type="text" class="form-control" placeholder="Email" id="email2" name="Email" minlength="2">
-                    <label for="Mail">Email</label>
+        <!-- Modal2 -->
+        <div class="modal fade" id="exampleModal1" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h2 class="modal-title" id="exampleModalLabel">Log in</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <form method="post" action="/login" onsubmit="return ValidateForm()">
+                  <div class="form-floating">
+                      <input type="text" class="form-control" placeholder="Email" id="email2" name="Email" minlength="2">
+                      <label for="Mail">Email</label>
+                  </div>
+            
+                  <div class="form-floating">
+                      <input type="password" class="form-control" placeholder="Password" id="name2" name="Password" minlength="2">
+                      <label for="Password">Password</label>
+                  </div>
+        
+                  <p class="text-body-secondary">New to JSForum?
+                    <button type="button" class="btn signupBtn" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                      Sign Up
+                  </button>
+                  </p>
+                  <div class="text-center">
+                    <button class="btn btn-primary loginBtn" type="submit" name="operation" value="Login">Log In</button>
                 </div>
-                <br>
-                <div class="form-floating">
-                    <input type="password" class="form-control" placeholder="Password" id="name2" name="Password" minlength="2">
-                    <label for="Password">Password</label>
-                </div>
-                <br>
-                <div class="text-center">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button class="btn btn-primary" type="submit" name="operation" value="Login">Log In</button>
-                </div>
-            </form>
-            <div class="text-center">
-                <button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                    Register
-                </button>
-            </div>
-            </div>
-            <div class="modal-footer">
+                  </div>
+              
+              </form>
+              
+              </div>
+              
             </div>
           </div>
         </div>
-      </div>
 
-<!-- Modal2 -->
-     <!-- Modal1 -->
-    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-          <div class="modal-content">
-              <div class="modal-header">
-                  <h3 class="modal-title" id="exampleModalLabel">Sign Up</h3>
-              </div>
-              <div class="modal-body">
-                  <form method="post" action="/login" onsubmit="return ValidateForm2()">
-                      <div class="form-floating">
-                          <input type="text" placeholder="Email" id="email" class="form-control" name="Email" minlength="2">
-                          <label for="Email">Email</label>
-                      </div>
-                      <br>
-                      <div class="form-floating">
-                          <input type="text" placeholder="Username" id="name" class="form-control" name="Name" minlength="2">
-                          <label for="Name">Username</label>
-                      </div>
-                      <br>
-                      <div class="form-floating">
-                          <input type="password" placeholder="Password" class="form-control" id="pass1" name="Password" minlength="2">
-                          <label for="Password">Password</label>
-                      </div>
-                      <br>
-                      <div class="form-floating">
-                          <input type="password" placeholder="Retype Password" class="form-control" id="pass2" name="Password2" minlength="2">
-                          <label for="Password2">Retype Password</label>
-                          <br>
-                          <div class="errorMessage" id="errorMessage"></div>
-                      </div>
-              </div>
-              <div id="HI" class="modal-footer d-flex justify-content-center">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                  <button type="submit" class="btn btn-primary" id="signbut" name="operation" value="signup">Sign up</button>
-                  </form>
-              </div>
-          </div>
-      </div>
+ <!-- Modal2 -->
        <!-- Modal1 -->
-  </div>
+      <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title" id="exampleModalLabel">Sign Up</h2>
+                </div>
+                <div class="modal-body">
+                    <form method="post" action="/login" onsubmit="return ValidateForm2()">
+                        <div class="form-floating">
+                            <input type="text" placeholder="Email" id="email" class="form-control" name="Email" minlength="2">
+                            <label for="Email">Email</label>
+                        </div>
+                        <div class="form-floating">
+                            <input type="text" placeholder="Username" id="name" class="form-control" name="Name" minlength="2">
+                            <label for="Name">Username</label>
+                        </div>
+                        <div class="form-floating">
+                            <input type="password" placeholder="Password" class="form-control" id="pass1" name="Password" minlength="2">
+                            <label for="Password">Password</label>
+                        </div>
+                        <div class="form-floating">
+                            <input type="password" placeholder="Retype Password" class="form-control" id="pass2" name="Password2" minlength="2">
+                            <label for="Password2">Retype Password</label>
+                            <div class="errorMessage" id="errorMessage"></div>
+                        </div>
+                </div>
+                <div id="HI" class="modal-footer d-flex justify-content-center">
+
+                    <button type="submit" class="btn btn-primary" id="signbut" name="operation" value="signup">Sign up</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+         <!-- Modal1 -->
+    </div>
     </main>
     <script src="/static/createPost.js"></script>
     <script
@@ -205,6 +203,13 @@
   </body>
 </html>
 <style>
+  .loginBtn {
+    width: 100%;
+  }
+  .signupBtn{
+    padding: 0;
+    
+  }
   .form-select {
     padding: 0px, 0px, 0px;
   }
