@@ -64,12 +64,9 @@ func Homepage(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
-	} else if r.Method == "POST" {
-
 	}
 }
 
-// Fetches posts from the database and reverses them
 func fetchPostsFromDB() []Post {
 	var posts []Post
 
@@ -110,7 +107,6 @@ func fetchPostsFromDB() []Post {
 	return reversedPosts
 }
 
-// Creates TABLE for database if one doesnt already exist
 func initializeTable() error {
 	db, err := sql.Open("sqlite3", "database.db")
 	if err != nil {

@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"net/mail"
-	"text/template"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
@@ -26,8 +25,6 @@ func (s session) isExpired() bool {
 	return s.expiry.Before(time.Now())
 }
 
-var logintmp = template.Must(template.New("login.html").ParseFiles("frontend/templates/login.html"))
-
 func LoginPage(w http.ResponseWriter, r *http.Request) {
 	email, name, password := "", "", ""
 
@@ -36,15 +33,7 @@ func LoginPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Method == "GET" {
-		err := logintmp.Execute(w, nil)
-		if err != nil {
-			log.Fatal("Error executing template:", err)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
-
-	} else if r.Method == "POST" {
+	if r.Method == "POST" {
 		database, err := sql.Open("sqlite3", "./database.db")
 		if err != nil {
 			log.Fatal("Error opening database:", err)
@@ -70,11 +59,11 @@ func LoginPage(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "Invalid Credentials", http.StatusUnauthorized)
 				return
 			}
-			createCookie(w, database, name)
+			createCookie(w, database, user)
 		}
-		http.Redirect(w, r, "/", http.StatusFound)
-	}
 
+	}
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 // checks if the user cridentials are valid
