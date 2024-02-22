@@ -17,7 +17,7 @@ var createPostPage = template.Must(template.New("createPost.html").ParseFiles("f
 func CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/createPost" {
-		http.Error(w, "Not Found", http.StatusNotFound)
+		HandleErrorPage(w, r)
 		return
 	}
 

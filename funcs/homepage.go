@@ -15,7 +15,7 @@ var hometmp = template.Must(template.New("index.html").ParseFiles("frontend/temp
 
 func Homepage(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
-		http.Error(w, "Not Found", http.StatusNotFound)
+		HandleErrorPage(w, r)
 		return
 	}
 

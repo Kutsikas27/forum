@@ -31,7 +31,7 @@ func LoginPage(w http.ResponseWriter, r *http.Request) {
 	email, name, password := "", "", ""
 
 	if r.URL.Path != "/login" {
-		http.Error(w, "Not Found", http.StatusNotFound)
+		HandleErrorPage(w, r)
 		return
 	}
 
