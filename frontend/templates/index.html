@@ -191,7 +191,7 @@
           <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
               <div class="modal-header">
-                <h1 class="modal-title fs-5" id="exampleModalLabel">Log in</h1>
+                <h2 class="modal-title" id="exampleModalLabel">Log in</h2>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
               <div class="modal-body">
@@ -206,16 +206,18 @@
                       <label for="Password">Password</label>
                   </div>
         
-                  <div class="text-center">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                      <button class="btn btn-primary" type="submit" name="operation" value="Login">Log In</button>
-                  </div>
-              </form>
-              <div class="text-center">
-                  <button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                      Register
+                  <p class="text-body-secondary">New to JSForum?
+                    <button type="button" class="btn signupBtn" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                      Sign Up
                   </button>
-              </div>
+                  </p>
+                  <div class="text-center">
+                    <button class="btn btn-primary loginBtn" type="submit" name="operation" value="Login">Log In</button>
+                </div>
+                  </div>
+              
+              </form>
+              
               </div>
               
             </div>
@@ -228,7 +230,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h1 class="modal-title" id="exampleModalLabel">Sign Up</h1>
+                    <h2 class="modal-title" id="exampleModalLabel">Sign Up</h2>
                 </div>
                 <div class="modal-body">
                     <form method="post" action="/login" onsubmit="return ValidateForm2()">
@@ -251,7 +253,7 @@
                         </div>
                 </div>
                 <div id="HI" class="modal-footer d-flex justify-content-center">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+
                     <button type="submit" class="btn btn-primary" id="signbut" name="operation" value="signup">Sign up</button>
                     </form>
                 </div>
@@ -270,6 +272,10 @@
 </html>
 
 <style>
+   .signupBtn{
+    padding: 0;
+    
+  }
 
   input {
     max-width: 100%;
@@ -288,6 +294,9 @@
     margin-right: 10px;
   }
   .form-floating{
-    margin-bottom: 5px;
+    margin-bottom: 15px;
+  }
+  .loginBtn {
+    width: 100%;
   }
 </style>
