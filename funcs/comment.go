@@ -10,10 +10,10 @@ import (
 )
 
 // commenttmp is a template for rendering the comment.html file.
-var commenttmp = template.Must(template.New("comment.html").ParseFiles("frontend/templates/comment.html"))
+var commenttmp = template.Must(template.New("comment.html").ParseFiles("web/templates/comment.html"))
 
 // PostComment handles the logic for posting a comment.
-func PostComment(w http.ResponseWriter, r *http.Request) {
+func ThreadHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" && r.Method != "POST" {
 		log.Fatal("Invalid Method")
 	}

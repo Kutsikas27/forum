@@ -6,7 +6,7 @@ import (
 	"text/template"
 )
 
-var errorPage = template.Must(template.New("errorPage.html").ParseFiles("frontend/templates/errorPage.html"))
+var errorPage = template.Must(template.New("errorPage.html").ParseFiles("web/templates/errorPage.html"))
 
 func HandleErrorPage(w http.ResponseWriter, r *http.Request) {
 	err := errorPage.Execute(w, nil)

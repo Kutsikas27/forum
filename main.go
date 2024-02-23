@@ -8,11 +8,11 @@ import (
 )
 
 func main() {
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./frontend/static"))))
-	http.HandleFunc("/", funcs.Homepage)
-	http.HandleFunc("/login", funcs.LoginPage)
-	http.HandleFunc("/createPost", funcs.CreatePost)
-	http.HandleFunc("/comments/", funcs.PostComment)
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./web/static"))))
+	http.HandleFunc("/", funcs.HomeHandler)
+	http.HandleFunc("/login", funcs.LoginHandler)
+	http.HandleFunc("/create-post", funcs.TopicHandler)
+	http.HandleFunc("/comments/", funcs.ThreadHandler)
 
 	addr := ":8080"
 	fmt.Printf("Forum running at localhost%s\n", addr)

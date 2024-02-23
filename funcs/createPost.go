@@ -12,11 +12,11 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var createPostPage = template.Must(template.New("createPost.html").ParseFiles("frontend/templates/createPost.html"))
+var createPostPage = template.Must(template.New("createPost.html").ParseFiles("web/templates/createPost.html"))
 
-func CreatePost(w http.ResponseWriter, r *http.Request) {
+func TopicHandler(w http.ResponseWriter, r *http.Request) {
 
-	if r.URL.Path != "/createPost" {
+	if r.URL.Path != "/create-post" {
 		HandleErrorPage(w, r)
 		return
 	}

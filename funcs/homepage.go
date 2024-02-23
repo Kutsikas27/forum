@@ -11,9 +11,9 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var hometmp = template.Must(template.New("index.html").ParseFiles("frontend/templates/index.html"))
+var hometmp = template.Must(template.New("index.html").ParseFiles("web/templates/index.html"))
 
-func Homepage(w http.ResponseWriter, r *http.Request) {
+func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		HandleErrorPage(w, r)
 		return

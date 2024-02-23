@@ -24,7 +24,7 @@ func (s session) isExpired() bool {
 	return s.expiry.Before(time.Now())
 }
 
-func LoginPage(w http.ResponseWriter, r *http.Request) {
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	email, name, password := "", "", ""
 
 	if r.URL.Path != "/login" {
