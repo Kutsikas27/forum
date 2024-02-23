@@ -61,6 +61,10 @@ func PostComment(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		comment := r.FormValue("commenttext")
+		if comment == "" {
+			fmt.Fprintln(w, "Comment cannot be empty")
+			return
+		}
 		addComment(comment, r.URL.Query().Get("postId"), username)
 		http.Redirect(w, r, "/", http.StatusFound)
 	}

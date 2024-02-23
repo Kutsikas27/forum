@@ -59,7 +59,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 		if username == "" {
-			http.Error(w, "Log in to make post", http.StatusUnauthorized)
+			fmt.Fprintln(w, "Log in to create a post")
 			return
 		}
 		r.ParseForm()

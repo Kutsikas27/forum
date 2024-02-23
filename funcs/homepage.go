@@ -62,93 +62,21 @@ func Homepage(w http.ResponseWriter, r *http.Request) {
 
 		err = hometmp.Execute(w, posts)
 		if err != nil {
-			log.Fatalln("Error executing template:", err)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			log.Fatal("Error executing home template:", err)
 			return
 		}
 	} else if r.Method == "POST" {
 		if useruuid == "" {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			fmt.Fprintln(w, "Log in to make likes and dislikes")
 			return
 		}
-		db, err := sql.Open("sqlite3", "database.db")
+		likes := r.FormValue("like")
+		dislieks := r.FormValue("dislike")
+		err := HandleVotes(likes, dislieks, useruuid, w)
 		if err != nil {
 			log.Fatal(err)
 		}
-		defer db.Close()
-		likes := r.FormValue("like")
-		dislieks := r.FormValue("dislike")
-		fmt.Println(likes)
-		fmt.Println(dislieks)
-		if likes != "" {
-			exists1, err := checkLikes(db, likes, useruuid)
-			if err != nil {
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				return
-			}
-			exists2, err := checkDislikes(db, likes, useruuid)
-			if err != nil {
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				return
-			}
-			if !exists1 && !exists2 {
-				stmt := "INSERT INTO likes (postid, userid) VALUES (?, ?)"
-				_, err = db.Exec(stmt, likes, useruuid)
-				if err != nil {
-					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-					return
-				}
-			} else if exists2 {
-				stmt := "DELETE FROM dislikes WHERE postid = ? AND userid = ?"
-				_, err = db.Exec(stmt, likes, useruuid)
-				if err != nil {
-					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-					return
-				}
-				stmt = "INSERT INTO likes (postid, userid) VALUES (?, ?)"
-				_, err = db.Exec(stmt, likes, useruuid)
-				if err != nil {
-					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-					return
-				}
-			} else if exists1 {
-				// do nothing
-			}
-		} else if dislieks != "" {
-			exists1, err := checkLikes(db, dislieks, useruuid)
-			if err != nil {
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				return
-			}
-			exists2, err := checkDislikes(db, dislieks, useruuid)
-			if err != nil {
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				return
-			}
-			if !exists1 && !exists2 {
-				stmt := "INSERT INTO dislikes (postid, userid) VALUES (?, ?)"
-				_, err = db.Exec(stmt, dislieks, useruuid)
-				if err != nil {
-					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-					return
-				}
-			} else if exists1 {
-				stmt := "DELETE FROM likes WHERE postid = ? AND userid = ?"
-				_, err = db.Exec(stmt, dislieks, useruuid)
-				if err != nil {
-					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-					return
-				}
-				stmt = "INSERT INTO dislikes (postid, userid) VALUES (?, ?)"
-				_, err = db.Exec(stmt, dislieks, useruuid)
-				if err != nil {
-					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-					return
-				}
-			} else if exists2 {
-				// do nothing
-			}
-		}
+		http.Redirect(w, r, "/", http.StatusFound)
 	}
 }
 
@@ -236,4 +164,72 @@ func checkDislikes(db *sql.DB, postId, userId string) (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+func HandleVotes(likes, dislieks, useruuid string, w http.ResponseWriter) error {
+	db, err := sql.Open("sqlite3", "database.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+	if likes != "" {
+		exists1, err := checkLikes(db, likes, useruuid)
+		if err != nil {
+			return err
+		}
+		exists2, err := checkDislikes(db, likes, useruuid)
+		if err != nil {
+			return err
+		}
+		if !exists1 && !exists2 {
+			stmt := "INSERT INTO likes (postid, userid) VALUES (?, ?)"
+			_, err = db.Exec(stmt, likes, useruuid)
+			if err != nil {
+				return err
+			}
+		} else if exists2 {
+			stmt := "DELETE FROM dislikes WHERE postid = ? AND userid = ?"
+			_, err = db.Exec(stmt, likes, useruuid)
+			if err != nil {
+				return err
+			}
+			stmt = "INSERT INTO likes (postid, userid) VALUES (?, ?)"
+			_, err = db.Exec(stmt, likes, useruuid)
+			if err != nil {
+				return err
+			}
+		} else if exists1 {
+			// do nothing
+		}
+	} else if dislieks != "" {
+		exists1, err := checkLikes(db, dislieks, useruuid)
+		if err != nil {
+			return err
+		}
+		exists2, err := checkDislikes(db, dislieks, useruuid)
+		if err != nil {
+			return err
+		}
+		if !exists1 && !exists2 {
+			stmt := "INSERT INTO dislikes (postid, userid) VALUES (?, ?)"
+			_, err = db.Exec(stmt, dislieks, useruuid)
+			if err != nil {
+				return err
+			}
+		} else if exists1 {
+			stmt := "DELETE FROM likes WHERE postid = ? AND userid = ?"
+			_, err = db.Exec(stmt, dislieks, useruuid)
+			if err != nil {
+				return err
+			}
+			stmt = "INSERT INTO dislikes (postid, userid) VALUES (?, ?)"
+			_, err = db.Exec(stmt, dislieks, useruuid)
+			if err != nil {
+				return err
+			}
+		} else if exists2 {
+			// do nothing
+		}
+	}
+	return nil
 }
