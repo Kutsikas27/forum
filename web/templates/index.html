@@ -120,17 +120,13 @@
                 </div>
                 <div class="card-footer d-flex justify-content-start"> 
                   <form method="post" action="/">
-                    <input
+                    <button
                       type="submit"
-                      class="btn-check"
+                      class="btn btn-outline-success"
                       name="like"
                       value="{{.Uuid}}"
                       id="success-{{.Uuid}}"
                       
-                    />
-                    <label
-                      class="btn btn-outline-success"
-                      for="success-{{.Uuid}}"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -145,17 +141,13 @@
                         />
                       </svg>
                       {{.GetLikes .Uuid}}
-                    </label>
-                    <input
+                    </button>
+                    <button
                       type="submit"
-                      class="btn-check"
+                      class="btn btn-outline-danger""
                       name="dislike"
                       value="{{.Uuid}}"
                       id="danger-{{.Uuid}}"
-                    />
-                    <label
-                      class="btn btn-outline-danger"
-                      for="danger-{{.Uuid}}"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -170,10 +162,10 @@
                         />
                       </svg>
                       {{.GetDislikes .Uuid}}
-                    </label>
+                    </button>
                   </form>
                   <a
-                    class="btn btn-secondary"
+                    class="btn btn-outline-warning"
                     href="/comments/?postId={{.Uuid}}"
                   >
                     <svg
