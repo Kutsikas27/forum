@@ -111,6 +111,17 @@
                     <option value="angular">angular</option>
                   </select>
                   <hr />
+                  {{if eq .UserName ""}}
+                  <button
+                    type="button"
+                    class="btn btn-primary align-self-center"
+                    data-bs-toggle="modal"
+                    data-bs-target="#exampleModal1"
+                    data-bs-whatever="@mdo"
+                  >
+                    Post
+                  </button>
+                  {{else}}
                   <button
                     class="submitBtn btn btn-dark"
                     type="submit"
@@ -119,6 +130,7 @@
                   >
                     Post
                   </button>
+                  {{end}}
                 </div>
               </form>
             </div>
