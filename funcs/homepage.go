@@ -30,6 +30,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session_token")
 	if err == nil {
 		sessionToken = cookie.Value
+		fmt.Println(sessions)
 		for index, session := range sessions {
 			if session.isExpired() || session.UserName == "" {
 				fmt.Println("EXPIRED SESSION")

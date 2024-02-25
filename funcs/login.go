@@ -51,6 +51,17 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 			}
+			username, err := LogIn(w, database, r.FormValue("Email"), r.FormValue("Password"))
+			if err != nil {
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				log.Println("Error logging in:", err)
+				return
+			}
+			if err := CreateCookie(w, database, username); err != nil {
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				log.Println("Error creating cookie:", err)
+				return
+			}
 		case "Login":
 			username, err := LogIn(w, database, r.FormValue("Email"), r.FormValue("Password"))
 			if err != nil {
