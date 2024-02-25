@@ -58,7 +58,6 @@ function ValidateForm2() {
   const inputs = [email, name, pass1, pass2];
   if (areInputsEmpty(inputs) || !checkPassword()) {
     event.preventDefault();
-    console.log("empty");
   }
 }
 

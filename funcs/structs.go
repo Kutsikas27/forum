@@ -20,6 +20,12 @@ type User struct {
 type PostComments struct {
 	Post     Post
 	Comments []Comment
+	User     User
+}
+
+type PostUser struct {
+	Post []Post
+	User User
 }
 
 type Comment struct {

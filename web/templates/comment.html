@@ -46,9 +46,16 @@
           <div class="align-self-center w-25">
             <input class="form-control" placeholder="Search Forum" />
           </div>
+          {{if eq .User.UserName ""}}
           <div class="d-flex flex-row-reverse w-25">
             <a href="/login" class="btn btn-primary align-self-center">Log In</a>
           </div>
+          {{else}}
+          <div class="d-flex flex-row-reverse w-25">
+            <a href="/logout" class="btn btn-primary align-self-center">Log Out</a>
+            <div class="align-self-center"> {{.User.UserName}} </div>
+          </div>
+          {{end}}
         </div>
         <hr />
         <div class="container">
@@ -80,24 +87,23 @@
                     <h4 class="card-title">{{.Post.Title}}</h4>
                     <p class="card-text">{{.Post.Text}}</p>
                   </div>
-                </a>
-                <div class="card-footer">
+              </div>
+                <div class="card border-primary mb-3 p-3">
                   <form method="post" action="/comments/?postId={{.Post.Uuid}}">
                     <textarea name="commenttext" class="w-100 h-50" placeholder="make comment"></textarea>
-                    <button type="submit" class="btn btn-primary">Comment</button>
+                    <button type="submit" class="btn btn-primary" name="operation" value="comment">Comment</button>
                   </form>
                   </div>
-              </div>
+                <div class="col-7 col-sm-12">
               {{range .Comments}}
-              <div class="col-md-7 col-sm-12">
               <div class="card border-primary mb-3">
                   <div class="card-header">{{.Creator}}</div>
                   <div class="card-body">
                     <p class="card-text">{{.Text}}</p>
                   </div>
               </div>
-              </div>
               {{end}}
+            </div>
             </div>
             <div class="col"></div>
           </div>
