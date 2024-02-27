@@ -28,19 +28,23 @@ func TopicHandler(w http.ResponseWriter, r *http.Request) {
 		sessionToken = cookie.Value
 		fmt.Println("COOKIE >:D")
 
-		userSession, exists := sessions[sessionToken]
-		if !exists || userSession.isExpired() {
-			delete(sessions, sessionToken)
-			deletedCookie := http.Cookie{
-				Name:    "session_token",
-				Value:   "",
-				Expires: time.Unix(0, 0),
+		for index, session := range sessions {
+			if session.isExpired() {
+				fmt.Println("EXPIRED SESSION")
+				sessions[index] = sessions[len(sessions)-1]
+				sessions = sessions[:len(sessions)-1]
+				deletedCookie := http.Cookie{
+					Name:    "session_token",
+					Value:   "",
+					Expires: time.Unix(0, 0),
+				}
+				http.SetCookie(w, &deletedCookie)
+			} else if session.UserUUID == sessionToken {
+				fmt.Println("SESSION FOUND")
+				username = session.UserName
+				session.expiry = time.Now().Add(120 * time.Second)
+				break
 			}
-			http.SetCookie(w, &deletedCookie)
-		} else {
-			userSession.expiry = time.Now().Add(120 * time.Second)
-			username = userSession.UserName
-			fmt.Println(userSession.UserName)
 		}
 	} else if err != http.ErrNoCookie {
 		fmt.Println("COOKIE >:(")
@@ -49,7 +53,8 @@ func TopicHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "GET" {
-		err := createPostPage.Execute(w, nil)
+		var U = User{UserName: username}
+		err := createPostPage.Execute(w, U)
 		if err != nil {
 			log.Fatal("Error executing template:", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)

@@ -12,7 +12,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var sessions = map[string]session{}
+var sessions = []session{}
 
 type session struct {
 	UserUUID string
@@ -25,8 +25,6 @@ func (s session) isExpired() bool {
 }
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	email, name, password := "", "", ""
-
 	if r.URL.Path != "/login" {
 		HandleErrorPage(w, r)
 		return
@@ -35,199 +33,172 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		database, err := sql.Open("sqlite3", "./database.db")
 		if err != nil {
-			log.Fatal("Error opening database:", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			log.Println("Error opening database:", err)
 			return
 		}
 		defer database.Close()
-		if r.FormValue("operation") == "signup" {
-			name = r.FormValue("Name")
-			password = r.FormValue("Password")
-			email = r.FormValue("Email")
-			err := Credentials(w, database, email, name, password)
+		switch r.FormValue("operation") {
+		case "signup":
+			if err := SignUp(w, database, r.FormValue("Name"), r.FormValue("Email"), r.FormValue("Password")); err != nil {
+				if err.Error() == "email already exists" {
+					http.Error(w, "Email already exists", http.StatusConflict)
+					log.Println("Error signing up user:", err)
+					return
+				} else {
+					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+					log.Println("Error signing up user:", err)
+					return
+				}
+			}
+			username, err := LogIn(w, database, r.FormValue("Email"), r.FormValue("Password"))
 			if err != nil {
-				log.Fatal("Error creating user:", err)
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				log.Println("Error logging in:", err)
 				return
 			}
-			err = createCookie(w, database, name)
+			if err := CreateCookie(w, database, username); err != nil {
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				log.Println("Error creating cookie:", err)
+				return
+			}
+		case "Login":
+			username, err := LogIn(w, database, r.FormValue("Email"), r.FormValue("Password"))
 			if err != nil {
-				log.Fatal("Error creating cookie:", err)
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				log.Println("Error logging in:", err)
 				return
 			}
-		} else if r.FormValue("operation") == "Login" {
-			password = r.FormValue("Password")
-			email = r.FormValue("Email")
-			user, err := login(w, database, email, password)
-			if err != nil {
-				log.Fatal("Error logging in:", err)
+			if username == "" {
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
 				return
 			}
-			if user == "" {
-				http.Error(w, "Invalid Credentials", http.StatusUnauthorized)
+			if err := CreateCookie(w, database, username); err != nil {
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				log.Println("Error creating cookie:", err)
 				return
 			}
-			err = createCookie(w, database, user)
-			if err != nil {
-				log.Fatal("Error creating cookie:", err)
-				return
-			}
-			fmt.Println("logged in as:", email, "username:", user, "password", password)
+			fmt.Println("logged in as:", r.FormValue("Email"), "username:", username)
+		default:
+			http.Error(w, "Bad Request", http.StatusBadRequest)
+			return
 		}
-
 	}
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
-// checks if the user cridentials are valid
-func Credentials(w http.ResponseWriter, database *sql.DB, email, name, password string) error {
-	exists1, err := checkEmail(database, email)
+func SignUp(w http.ResponseWriter, db *sql.DB, name, email, password string) error {
+	exists, err := CheckEmail(db, email)
 	if err != nil {
-		log.Println("Error checking email:", err)
-		return err
+		return fmt.Errorf("error checking email: %v", err)
+	}
+	if exists {
+		return fmt.Errorf("email already exists")
 	}
 
-	exists2, err := checkUserName(database, name)
+	exists, err = CheckUserName(db, name)
 	if err != nil {
-		log.Println("Error checking username:", err)
-		return err
+		return fmt.Errorf("error checking username: %v", err)
 	}
-	if exists1 || exists2 {
-		return fmt.Errorf("email or username already exists")
+	if exists {
+		return fmt.Errorf("username already exists")
 	}
 
-	err = insertUser(database, email, name, password)
-	if err != nil {
-		return err
+	if err := InsertUser(db, name, email, password); err != nil {
+		return fmt.Errorf("error inserting user: %v", err)
 	}
 	return nil
 }
 
-// checks if email is aleady in use
-func checkEmail(db *sql.DB, email string) (bool, error) {
-	valid := validateEmail(email)
-	if !valid {
-		return true, nil
-	}
-	stmt := `SELECT	EMAIL FROM USER WHERE EMAIL = ?`
-	err := db.QueryRow(stmt, email).Scan(&email)
+func LogIn(w http.ResponseWriter, db *sql.DB, email, password string) (string, error) {
+	username := ""
+	exists, err := CheckEmail(db, email)
 	if err != nil {
-		if err != sql.ErrNoRows {
-			return false, err
-		}
-		return false, nil
+		return "", fmt.Errorf("error checking email: %v", err)
 	}
-	return true, nil
+	if !exists {
+		return "", nil // User does not exist
+	}
+
+	stmt := `SELECT PASSWORD, USERNAME FROM USER WHERE EMAIL = ?`
+	row := db.QueryRow(stmt, email)
+	var dbPassword string
+	err = row.Scan(&dbPassword, &username)
+	if err != nil {
+		return "", fmt.Errorf("error retrieving user data: %v", err)
+	}
+
+	if dbPassword != password {
+		return "", nil // Incorrect password
+	}
+
+	return username, nil
 }
 
-// checks if the email is valid
-func validateEmail(email string) bool {
-	_, err := mail.ParseAddress(email)
-	return err == nil
-}
-
-// checks if the username already in use
-func checkUserName(db *sql.DB, name string) (bool, error) {
-	stmt := `SELECT	USERNAME FROM USER WHERE USERNAME = ?`
-	err := db.QueryRow(stmt, name).Scan(&name)
+func InsertUser(db *sql.DB, name, email, password string) error {
+	userUUID, err := uuid.NewV4()
 	if err != nil {
-		if err != sql.ErrNoRows {
-			return false, err
-		}
-		return false, nil
+		return fmt.Errorf("error generating UUID: %v", err)
 	}
-	return true, nil
-}
 
-// puts newly created user into the database
-func insertUser(db *sql.DB, email, name, password string) error {
-	useruuid, err := uuid.NewV4()
+	_, err = db.Exec("INSERT INTO USER(UUID, EMAIL, USERNAME, PASSWORD) VALUES(?, ?, ?, ?)",
+		userUUID.String(), email, name, password)
 	if err != nil {
-		return err
-	}
-	strUuid := useruuid.String()
-	insert := `INSERT INTO USER(UUID, EMAIL, USERNAME, PASSWORD) VALUES(?, ?, ?, ?)`
-	statement, err := db.Prepare(insert)
-	if err != nil {
-		return err
-	}
-	defer statement.Close()
-
-	_, err = statement.Exec(strUuid, email, name, password)
-	if err != nil {
-		return err
+		return fmt.Errorf("error inserting user: %v", err)
 	}
 
 	return nil
 }
 
-// creates cookie to save userdata
-func createCookie(w http.ResponseWriter, db *sql.DB, username string) error {
-	stmt := `SELECT	UUID FROM USER WHERE USERNAME = ?`
+func CreateCookie(w http.ResponseWriter, db *sql.DB, username string) error {
+	stmt := `SELECT UUID FROM USER WHERE USERNAME = ?`
 	row := db.QueryRow(stmt, username)
-	var useruuid string
-	err := row.Scan(&useruuid)
-	if err != nil {
-		return err
+	var userUUID string
+	if err := row.Scan(&userUUID); err != nil {
+		return fmt.Errorf("error retrieving user UUID: %v", err)
 	}
-	cookieUUID, err := uuid.NewV4()
-	if err != nil {
-		return err
-	}
-
-	tokenString := cookieUUID.String()
 
 	expiresAt := time.Now().Add(3600 * time.Second)
-	sessions[tokenString] = session{
-		UserUUID: useruuid,
+	newSession := session{
+		UserUUID: userUUID,
 		UserName: username,
 		expiry:   expiresAt,
 	}
 
+	sessions = append(sessions, newSession)
+
 	http.SetCookie(w, &http.Cookie{
-		Name:       "session_token",
-		Value:      tokenString,
-		Path:       "/",
-		Domain:     "",
-		Expires:    expiresAt,
-		RawExpires: "",
-		MaxAge:     3600,
-		Secure:     true,
-		HttpOnly:   true,
-		SameSite:   0,
-		Raw:        "",
-		Unparsed:   []string{},
+		Name:     "session_token",
+		Value:    userUUID,
+		Path:     "/",
+		Expires:  expiresAt,
+		MaxAge:   3600,
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+		Secure:   true,
 	})
 	fmt.Println("cookie created")
 	return nil
 }
 
-func login(w http.ResponseWriter, database *sql.DB, email, password string) (string, error) {
-	Username := ""
-	exists, err := checkEmail(database, email)
-	if err != nil {
-		return "", err
-	}
-	if !exists {
-		return "", nil
-	}
-	stmt := `SELECT	PASSWORD FROM USER WHERE EMAIL = ?`
-	row := database.QueryRow(stmt, email)
-	var dbPassword string
-	err = row.Scan(&dbPassword)
-	if err != nil {
-		return "", err
+func CheckEmail(db *sql.DB, email string) (bool, error) {
+	if _, err := mail.ParseAddress(email); err != nil {
+		return false, nil // Invalid email format, treat as if it doesn't exist
 	}
 
-	if dbPassword == password {
-		stmt := `SELECT	USERNAME FROM USER WHERE EMAIL = ?`
-		row := database.QueryRow(stmt, email)
-		var names string
-		err = row.Scan(&names)
-		if err != nil {
-			return "", err
-		}
-		Username = names
-	} else {
-		return "", nil
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM USER WHERE EMAIL = ?", email).Scan(&count)
+	if err != nil {
+		return false, err
 	}
-	return Username, nil
+	return count > 0, nil
+}
+
+func CheckUserName(db *sql.DB, name string) (bool, error) {
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM USER WHERE USERNAME = ?", name).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }

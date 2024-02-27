@@ -25,19 +25,23 @@ func ThreadHandler(w http.ResponseWriter, r *http.Request) {
 		sessionToken = cookie.Value
 		fmt.Println("COOKIE >:D")
 
-		userSession, exists := sessions[sessionToken]
-		if !exists || userSession.isExpired() {
-			delete(sessions, sessionToken)
-			deletedCookie := http.Cookie{
-				Name:    "session_token",
-				Value:   "",
-				Expires: time.Unix(0, 0),
+		for index, session := range sessions {
+			if session.isExpired() {
+				fmt.Println("EXPIRED SESSION")
+				sessions[index] = sessions[len(sessions)-1]
+				sessions = sessions[:len(sessions)-1]
+				deletedCookie := http.Cookie{
+					Name:    "session_token",
+					Value:   "",
+					Expires: time.Unix(0, 0),
+				}
+				http.SetCookie(w, &deletedCookie)
+			} else if session.UserUUID == sessionToken {
+				fmt.Println("SESSION FOUND")
+				username = session.UserName
+				session.expiry = time.Now().Add(120 * time.Second)
+				break
 			}
-			http.SetCookie(w, &deletedCookie)
-		} else {
-			userSession.expiry = time.Now().Add(120 * time.Second)
-			username = userSession.UserName
-			fmt.Println(userSession.UserName)
 		}
 	} else if err != http.ErrNoCookie {
 		fmt.Println("COOKIE >:(")
@@ -52,8 +56,9 @@ func ThreadHandler(w http.ResponseWriter, r *http.Request) {
 			PC PostComments
 			C  = getComments(postId)
 			P  = getPost(postId)
+			U  = User{UserName: username}
 		)
-		PC = PostComments{P, C}
+		PC = PostComments{P, C, U}
 		commenttmp.Execute(w, PC)
 	} else if r.Method == "POST" {
 		if username == "" {

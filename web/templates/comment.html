@@ -46,9 +46,24 @@
           <div class="align-self-center w-25">
             <input class="form-control" placeholder="Search Forum" />
           </div>
+          {{if eq .User.UserName ""}}
           <div class="d-flex flex-row-reverse w-25">
-            <a href="/login" class="btn btn-primary align-self-center">Log In</a>
+            <button
+              type="button"
+              class="btn btn-primary align-self-center"
+              data-bs-toggle="modal"
+              data-bs-target="#exampleModal1"
+              data-bs-whatever="@mdo"
+            >
+              Log in
+            </button>
           </div>
+          {{else}}
+          <div class="d-flex flex-row-reverse w-25">
+            <a href="/logout" class="btn btn-primary align-self-center">Log Out</a>
+            <div class="align-self-center"> {{.User.UserName}} </div>
+          </div>
+          {{end}}
         </div>
         <hr />
         <div class="container">
@@ -80,28 +95,114 @@
                     <h4 class="card-title">{{.Post.Title}}</h4>
                     <p class="card-text">{{.Post.Text}}</p>
                   </div>
-                </a>
-                <div class="card-footer">
+              </div>
+                <div class="card border-primary mb-3 p-3">
                   <form method="post" action="/comments/?postId={{.Post.Uuid}}">
                     <textarea name="commenttext" class="w-100 h-50" placeholder="make comment"></textarea>
-                    <button type="submit" class="btn btn-primary">Comment</button>
+                    {{if eq .User.UserName ""}}
+                    <button
+                      type="button"
+                      class="btn btn-primary align-self-center"
+                      data-bs-toggle="modal"
+                      data-bs-target="#exampleModal1"
+                      data-bs-whatever="@mdo"
+                    >
+                      Comment
+                    </button>
+                    {{else}}
+                    <button type="submit" class="btn btn-primary" name="operation" value="comment">Comment</button>
+                    {{end}}
                   </form>
                   </div>
-              </div>
+                <div class="col-7 col-sm-12">
               {{range .Comments}}
-              <div class="col-md-7 col-sm-12">
               <div class="card border-primary mb-3">
                   <div class="card-header">{{.Creator}}</div>
                   <div class="card-body">
                     <p class="card-text">{{.Text}}</p>
                   </div>
               </div>
-              </div>
               {{end}}
+            </div>
             </div>
             <div class="col"></div>
           </div>
         </div>
+        <!-- Modal2 -->
+        <div class="modal fade" id="exampleModal1" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h2 class="modal-title" id="exampleModalLabel">Log in</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <form method="post" action="/login" onsubmit="return ValidateForm()">
+                  <div class="form-floating">
+                      <input type="text" class="form-control" placeholder="Email" id="email2" name="Email" minlength="2">
+                      <label for="Mail">Email</label>
+                  </div>
+            
+                  <div class="form-floating">
+                      <input type="password" class="form-control" placeholder="Password" id="name2" name="Password" minlength="2">
+                      <label for="Password">Password</label>
+                  </div>
+                  <div class="errorMessage" id="errorMessage"></div>
+                  <p class="text-body-secondary">New to JSForum?
+                    <button type="button" class="btn signupBtn" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                      Sign Up
+                  </button>
+                  </p>
+                  <div class="text-center">
+                    <button class="btn btn-primary loginBtn" type="submit" name="operation" value="Login">Log In</button>
+                </div>
+                  </div>
+              
+              </form>
+              
+              </div>
+              
+            </div>
+          </div>
+        </div>
+
+ <!-- Modal2 -->
+       <!-- Modal1 -->
+      <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title" id="exampleModalLabel">Sign Up</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" action="/login" onsubmit="return ValidateForm2()">
+                        <div class="form-floating">
+                            <input type="text" placeholder="Email" id="email" class="form-control" name="Email" minlength="2">
+                            <label for="Email">Email</label>
+                        </div>
+                        <div class="form-floating">
+                            <input type="text" placeholder="Username" id="name" class="form-control" name="Name" minlength="2">
+                            <label for="Name">Username</label>
+                        </div>
+                        <div class="form-floating">
+                            <input type="password" placeholder="Password" class="form-control" id="pass1" name="Password" minlength="2">
+                            <label for="Password">Password</label>
+                        </div>
+                        <div class="form-floating">
+                            <input type="password" placeholder="Retype Password" class="form-control" id="pass2" name="Password2" minlength="2">
+                            <label for="Password2">Retype Password</label>
+                            <div class="errorMessage" id="errorMessage"></div>
+                        </div>
+                </div>
+                <div id="HI" class="modal-footer d-flex justify-content-center">
+
+                    <button type="submit" class="btn btn-primary" id="signbut" name="operation" value="signup">Sign up</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+         <!-- Modal1 -->
       </div>
     </main>
     <script
